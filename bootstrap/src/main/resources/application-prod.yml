@@ -1,0 +1,17 @@
+# Production Profile Configuration
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    com.elevate.sparkle: INFO
+    org.springframework.web: WARN

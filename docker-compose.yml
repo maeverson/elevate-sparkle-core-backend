@@ -1,0 +1,128 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sparkle-postgres
+    environment:
+      POSTGRES_DB: sparkledb
+      POSTGRES_USER: sparkle
+      POSTGRES_PASSWORD: sparkle123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sparkle"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sparkle-network
+
+  localstack:
+    image: localstack/localstack:3.0
+    container_name: sparkle-localstack
+    environment:
+      SERVICES: sqs
+      DEBUG: 1
+      DATA_DIR: /tmp/localstack/data
+      DOCKER_HOST: unix:///var/run/docker.sock
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    volumes:
+      - localstack_data:/tmp/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sparkle-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.96.0
+    container_name: sparkle-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus metrics exporter
+    networks:
+      - sparkle-network
+
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: sparkle-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - sparkle-network
+
+  grafana:
+    image: grafana/grafana:10.3.3
+    container_name: sparkle-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - sparkle-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sparkle-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sparkledb
+      SPRING_DATASOURCE_USERNAME: sparkle
+      SPRING_DATASOURCE_PASSWORD: sparkle123
+      CLOUD_AWS_SQS_ENDPOINT: http://localstack:4566
+      CLOUD_AWS_REGION_STATIC: us-east-1
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://otel-collector:4317
+      JWT_SECRET: ${JWT_SECRET:-your-256-bit-secret-key-change-this-in-production}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - sparkle-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+  localstack_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  sparkle-network:
+    driver: bridge

@@ -1,0 +1,146 @@
+package com.elevate.sparkle.application.usecase;
+
+import com.elevate.sparkle.application.port.in.CreateOrderUseCase;
+import com.elevate.sparkle.application.port.out.OrderEventPublisherPort;
+import com.elevate.sparkle.application.port.out.OrderRepositoryPort;
+import com.elevate.sparkle.domain.model.Order;
+import com.elevate.sparkle.domain.valueobject.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for CreateOrderService
+ * Tests use case logic with mocked dependencies
+ */
+@ExtendWith(MockitoExtension.class)
+class CreateOrderServiceTest {
+
+    @Mock
+    private OrderRepositoryPort orderRepository;
+
+    @Mock
+    private OrderEventPublisherPort eventPublisher;
+
+    private CreateOrderService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CreateOrderService(orderRepository, eventPublisher);
+    }
+
+    @Test
+    void shouldCreateOrderSuccessfully() {
+        // Given
+        CreateOrderUseCase.CreateOrderCommand command = createTestCommand();
+        Order savedOrder = createTestOrder();
+
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        doNothing().when(eventPublisher).publishOrderCreated(any(Order.class));
+
+        // When
+        Order result = service.createOrder(command);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(OrderStatus.SUBMITTED);
+
+        // Verify interactions
+        verify(orderRepository, times(1)).save(any(Order.class));
+        verify(eventPublisher, times(1)).publishOrderCreated(any(Order.class));
+    }
+
+    @Test
+    void shouldSaveOrderWithCorrectData() {
+        // Given
+        CreateOrderUseCase.CreateOrderCommand command = createTestCommand();
+        Order savedOrder = createTestOrder();
+
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        // When
+        service.createOrder(command);
+
+        // Then
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepository).save(orderCaptor.capture());
+
+        Order capturedOrder = orderCaptor.getValue();
+        assertThat(capturedOrder.getUserId()).isEqualTo(command.userId());
+        assertThat(capturedOrder.getShippingAddress()).isEqualTo(command.shippingAddress());
+        assertThat(capturedOrder.getItems()).hasSize(command.items().size());
+    }
+
+    @Test
+    void shouldPublishEventAfterSaving() {
+        // Given
+        CreateOrderUseCase.CreateOrderCommand command = createTestCommand();
+        Order savedOrder = createTestOrder();
+
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        // When
+        service.createOrder(command);
+
+        // Then
+        verify(orderRepository).save(any(Order.class));
+        verify(eventPublisher).publishOrderCreated(savedOrder);
+    }
+
+    @Test
+    void shouldHandleEventPublishingFailure() {
+        // Given
+        CreateOrderUseCase.CreateOrderCommand command = createTestCommand();
+        Order savedOrder = createTestOrder();
+
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        doThrow(new RuntimeException("Event publishing failed"))
+                .when(eventPublisher).publishOrderCreated(any(Order.class));
+
+        // When & Then - should not throw exception (order is already saved)
+        assertThatCode(() -> service.createOrder(command))
+                .doesNotThrowAnyException();
+    }
+
+    // Helper methods
+
+    private CreateOrderUseCase.CreateOrderCommand createTestCommand() {
+        UserId userId = UserId.generate();
+        Address address = Address.of("123 Main St", "New York", "NY", "10001", "USA");
+        List<CreateOrderUseCase.OrderItemCommand> items = List.of(
+                new CreateOrderUseCase.OrderItemCommand(
+                        ProductId.generate(),
+                        "Test Product",
+                        1,
+                        Money.of(BigDecimal.valueOf(100.00), "USD")
+                )
+        );
+
+        return new CreateOrderUseCase.CreateOrderCommand(userId, address, items);
+    }
+
+    private Order createTestOrder() {
+        UserId userId = UserId.generate();
+        Address address = Address.of("123 Main St", "New York", "NY", "10001", "USA");
+        OrderItem item = OrderItem.create(
+                ProductId.generate(),
+                "Test Product",
+                Quantity.of(1),
+                Money.of(100.00, "USD")
+        );
+
+        Order order = Order.createNew(userId, address, List.of(item));
+        order.submit();
+        return order;
+    }
+}

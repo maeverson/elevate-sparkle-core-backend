@@ -1,0 +1,27 @@
+# Development Profile Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sparkle_db
+    username: sparkle_user
+    password: sparkle_password
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+aws:
+  sqs:
+    endpoint: http://localhost:4566  # LocalStack endpoint
+
+logging:
+  level:
+    com.elevate.sparkle: DEBUG
+    org.springframework.security: DEBUG
+
+# Local OTEL collector
+otel:
+  exporter:
+    otlp:
+      endpoint: http://localhost:4317

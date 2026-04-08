@@ -1,0 +1,129 @@
+spring:
+  application:
+    name: sparkle-core-backend
+
+  profiles:
+    active: ${SPRING_PROFILE:dev}
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sparkle_db}
+    username: ${DB_USERNAME:sparkle_user}
+    password: ${DB_PASSWORD:sparkle_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: public
+
+# AWS Configuration
+aws:
+  region: ${AWS_REGION:us-east-1}
+  sqs:
+    order-events-queue: ${SQS_ORDER_EVENTS_QUEUE:order-events}
+    endpoint: ${SQS_ENDPOINT:}  # Leave empty for real AWS, set for LocalStack
+
+spring.cloud.aws:
+  region:
+    static: ${AWS_REGION:us-east-1}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:sparkle-secret-key-change-in-production-minimum-256-bits-required}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours
+
+# OpenTelemetry Configuration
+otel:
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+  service:
+    name: ${spring.application.name}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Resilience4j Configuration
+resilience4j:
+  retry:
+    instances:
+      sqsPublish:
+        max-attempts: 3
+        wait-duration: 1000ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  circuitbreaker:
+    instances:
+      sqsPublish:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.elevate.sparkle: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{correlationId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{correlationId}] - %msg%n"
+
+# SpringDoc Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+  shutdown: graceful

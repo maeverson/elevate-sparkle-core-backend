@@ -1,0 +1,304 @@
+# Sparkle Core Backend
+
+Enterprise-grade backend system built with **Hexagonal Architecture** (Ports & Adapters), designed for scalability, resilience, and observability.
+
+## 🏗️ Architecture
+
+This project follows **Hexagonal Architecture** principles with strict separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Bootstrap Layer                    │
+│            (Spring Boot Configuration)               │
+└─────────────────────────────────────────────────────┘
+                          ▲
+                          │
+        ┌─────────────────┴─────────────────┐
+        │                                   │
+┌───────▼────────┐              ┌──────────▼─────────┐
+│  Adapter-In    │              │   Adapter-Out      │
+│  (REST API)    │              │  (Persistence +    │
+│                │              │   Messaging)       │
+└───────┬────────┘              └──────────┬─────────┘
+        │                                   │
+        └─────────────────┬─────────────────┘
+                          ▼
+             ┌────────────────────────┐
+             │  Core Application      │
+             │  (Use Cases + Ports)   │
+             └────────────┬───────────┘
+                          ▼
+                ┌─────────────────┐
+                │  Core Domain    │
+                │ (Pure Business  │
+                │     Logic)      │
+                └─────────────────┘
+```
+
+### Modules
+
+1. **core-domain**: Pure domain logic (no framework dependencies)
+2. **core-application**: Use cases and port interfaces
+3. **adapter-in-web**: REST API controllers
+4. **adapter-out-persistence**: PostgreSQL persistence (JPA)
+5. **adapter-out-messaging**: AWS SQS event publishing
+6. **infrastructure**: Security, observability, cross-cutting concerns
+7. **bootstrap**: Spring Boot application entry point
+
+## 🚀 Technology Stack
+
+- **Java 17** + **Spring Boot 3.2.5**
+- **Maven** (multi-module project)
+- **PostgreSQL 15** (database)
+- **AWS SQS** (asynchronous messaging)
+- **Spring Security** + **JWT** (authentication)
+- **OpenTelemetry** + **Prometheus** + **Grafana** (observability)
+- **Resilience4j** (circuit breaker, retry)
+- **Flyway** (database migrations)
+- **Testcontainers** (integration testing)
+
+## 📋 Prerequisites
+
+- JDK 17+
+- Maven 3.8+
+- Docker & Docker Compose
+- AWS CLI (for production deployment)
+
+## 🛠️ Getting Started
+
+### 1. Clone the repository
+```bash
+git clone <repository-url>
+cd elevate-sparkle-core-backend
+```
+
+### 2. Build the project
+```bash
+mvn clean install
+```
+
+### 3. Run with Docker Compose
+```bash
+docker-compose up -d
+```
+
+This will start:
+- PostgreSQL database (port 5432)
+- LocalStack (SQS emulator, port 4566)
+- OpenTelemetry Collector (port 4317)
+- Prometheus (port 9090)
+- Grafana (port 3000)
+- Application (port 8080)
+
+### 4. Access the application
+
+- **API**: http://localhost:8080
+- **API Docs**: http://localhost:8080/swagger-ui.html
+- **Health Check**: http://localhost:8080/actuator/health
+- **Metrics**: http://localhost:8080/actuator/prometheus
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
+
+## 🧪 Testing
+
+### Run all tests
+```bash
+mvn verify
+```
+
+### Run only unit tests
+```bash
+mvn test
+```
+
+### Run only integration tests
+```bash
+mvn verify -P integration-tests
+```
+
+## 📊 Observability
+
+### Metrics
+- Exposed via `/actuator/prometheus`
+- Collected by Prometheus
+- Visualized in Grafana
+
+### Tracing
+- OpenTelemetry instrumentation
+- OTLP export to collector
+- Correlation ID propagation via MDC
+
+### Logging
+- Structured JSON logging (Logstash format)
+- Includes: correlationId, traceId, spanId
+- Centralized via stdout (for container orchestration)
+
+## 🔐 Security
+
+### Authentication
+- JWT-based stateless authentication
+- POST `/api/v1/auth/register` - Register new user
+- POST `/api/v1/auth/login` - Get JWT token
+
+### Authorization
+- Role-based access control (USER, ADMIN)
+- Spring Security configuration
+- Password encryption with BCrypt
+
+### Example Login Request
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "user@example.com",
+    "password": "password123"
+  }'
+```
+
+## 📦 API Endpoints
+
+### Orders
+- `POST /api/v1/orders` - Create new order
+- `GET /api/v1/orders/{id}` - Get order by ID
+- `GET /api/v1/orders` - List all orders
+- `PATCH /api/v1/orders/{id}/status` - Update order status
+
+### Users
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Authenticate user
+
+All endpoints (except auth) require `Authorization: Bearer <JWT>` header.
+
+## 🌍 Environment Configuration
+
+### Development (application-dev.yml)
+- Uses LocalStack for SQS
+- H2 console enabled (if needed)
+- Verbose logging
+
+### Production (application-prod.yml)
+- Real AWS SQS
+- Production database
+- WARN-level logging
+- Enhanced security
+
+### Environment Variables
+```bash
+SPRING_PROFILES_ACTIVE=dev                # or prod
+SPRING_DATASOURCE_URL=jdbc:postgresql://...
+SPRING_DATASOURCE_USERNAME=sparkle
+SPRING_DATASOURCE_PASSWORD=secret
+CLOUD_AWS_SQS_ENDPOINT=http://localhost:4566
+JWT_SECRET=your-256-bit-secret-key
+```
+
+## 🐳 Docker
+
+### Build image
+```bash
+docker build -t sparkle-backend:latest .
+```
+
+### Run standalone
+```bash
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=dev \
+  -e JWT_SECRET=my-secret-key \
+  sparkle-backend:latest
+```
+
+## 🚢 CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci-cd.yml`) includes:
+
+1. **Build & Test** - Maven build + unit/integration tests
+2. **Code Quality** - Checkstyle, SpotBugs
+3. **Security Scan** - Dependency vulnerability check
+4. **Package** - JAR artifact creation
+5. **Docker Build** - Multi-stage Docker image
+6. **Deploy Staging** - Automatic deployment to staging
+7. **Deploy Production** - Manual approval required
+
+### Required Secrets
+- `DOCKER_USERNAME`
+- `DOCKER_PASSWORD`
+- `SLACK_WEBHOOK` (optional)
+
+## 📁 Project Structure
+
+```
+elevate-sparkle-core-backend/
+├── core-domain/                    # Pure domain logic
+│   └── src/main/java/.../domain/
+│       ├── model/                  # Entities (Order, User)
+│       ├── valueobject/           # Value objects (Money, Email, etc.)
+│       └── exception/             # Domain exceptions
+│
+├── core-application/               # Use cases
+│   └── src/main/java/.../application/
+│       ├── port/in/               # Input ports (use case interfaces)
+│       ├── port/out/              # Output ports (repository interfaces)
+│       └── usecase/               # Use case implementations
+│
+├── adapter-in-web/                # REST controllers
+│   └── src/main/java/.../adapter/web/
+│       ├── controller/            # REST endpoints
+│       ├── dto/                   # Request/Response DTOs
+│       └── mapper/                # DTO↔Domain mappers
+│
+├── adapter-out-persistence/       # Database adapter
+│   └── src/main/java/.../adapter/persistence/
+│       ├── entity/                # JPA entities
+│       ├── repository/            # Spring Data repositories
+│       ├── mapper/                # JPA↔Domain mappers
+│       └── adapter/               # Port implementations
+│
+├── adapter-out-messaging/         # Messaging adapter
+│   └── src/main/java/.../adapter/messaging/
+│       ├── event/                 # Event DTOs
+│       ├── mapper/                # Event mappers
+│       └── adapter/               # SQS publisher
+│
+├── infrastructure/                # Cross-cutting concerns
+│   └── src/main/java/.../infrastructure/
+│       ├── security/              # JWT, security config
+│       ├── observability/         # OpenTelemetry, MDC
+│       └── config/                # OpenAPI, beans
+│
+├── bootstrap/                     # Application entry point
+│   └── src/main/java/.../bootstrap/
+│       ├── SparkleBackendApplication.java
+│       └── config/                # Bean wiring
+│
+├── docker-compose.yml
+├── Dockerfile
+└── .github/workflows/ci-cd.yml
+```
+
+## 🔧 Configuration Files
+
+- **pom.xml** - Maven parent POM with dependency management
+- **application.yml** - Main configuration (database, SQS, JWT, OTEL)
+- **application-dev.yml** - Development profile
+- **application-prod.yml** - Production profile
+- **logback-spring.xml** - Structured logging configuration
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 📞 Contact
+
+For questions or support, contact the development team.
+
+---
+
+**Built with ❤️ using Hexagonal Architecture**
