@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
  * Mapper for JourneyDSL to/from JSON Map
  */
 @Component
-public class JourneyDSLMapper {
+public class JourneyPersistenceMapper {
     
     private final ObjectMapper objectMapper;
     
-    public JourneyDSLMapper(ObjectMapper objectMapper) {
+    public JourneyPersistenceMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
     

@@ -1,7 +1,7 @@
 package com.elevate.sparkle.adapter.in.web.controller;
 
 import com.elevate.sparkle.adapter.in.web.dto.*;
-import com.elevate.sparkle.adapter.in.web.mapper.JourneyDSLMapper;
+import com.elevate.sparkle.adapter.in.web.mapper.JourneyDtoMapper;
 import com.elevate.sparkle.application.port.in.*;
 import com.elevate.sparkle.domain.model.JourneyDefinition;
 import com.elevate.sparkle.domain.model.JourneyVersion;
@@ -34,7 +34,7 @@ public class JourneyController {
     private final PublishJourneyVersionUseCase publishVersionUseCase;
     private final GetJourneyUseCase getJourneyUseCase;
     private final GetJourneyVersionUseCase getVersionUseCase;
-    private final JourneyDSLMapper dslMapper;
+    private final JourneyDtoMapper dslMapper;
     
     public JourneyController(
             CreateJourneyUseCase createJourneyUseCase,
@@ -42,7 +42,7 @@ public class JourneyController {
             PublishJourneyVersionUseCase publishVersionUseCase,
             GetJourneyUseCase getJourneyUseCase,
             GetJourneyVersionUseCase getVersionUseCase,
-            JourneyDSLMapper dslMapper
+            JourneyDtoMapper dslMapper
     ) {
         this.createJourneyUseCase = createJourneyUseCase;
         this.createVersionUseCase = createVersionUseCase;

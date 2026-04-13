@@ -18,9 +18,9 @@ import java.util.Map;
 public class JourneyVersionMapper {
     
     private final ObjectMapper objectMapper;
-    private final JourneyDSLMapper dslMapper;
+    private final JourneyPersistenceMapper dslMapper;
     
-    public JourneyVersionMapper(ObjectMapper objectMapper, JourneyDSLMapper dslMapper) {
+    public JourneyVersionMapper(ObjectMapper objectMapper, JourneyPersistenceMapper dslMapper) {
         this.objectMapper = objectMapper;
         this.dslMapper = dslMapper;
     }

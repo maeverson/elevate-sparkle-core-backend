@@ -5,27 +5,33 @@
 -- Journey Definitions
 -- ============================================
 
+-- Default system admin user ID for seed data
+-- In production, this should reference an actual user from the users table
+
 -- Journey 1: HTTP API Call Journey
-INSERT INTO journey_definitions (id, name, description, created_at, updated_at) VALUES
+INSERT INTO journey_definitions (id, name, description, created_by, created_at, updated_at) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', 
  'HTTP API Integration', 
  'Calls external REST API and processes response',
+ '00000000-0000-0000-0000-000000000001', 
  CURRENT_TIMESTAMP, 
  CURRENT_TIMESTAMP);
 
 -- Journey 2: Email Notification Journey  
-INSERT INTO journey_definitions (id, name, description, created_at, updated_at) VALUES
+INSERT INTO journey_definitions (id, name, description, created_by, created_at, updated_at) VALUES
 ('550e8400-e29b-41d4-a716-446655440002', 
  'Email Notification Service', 
  'Sends templated emails with attachments',
+ '00000000-0000-0000-0000-000000000001', 
  CURRENT_TIMESTAMP, 
  CURRENT_TIMESTAMP);
 
 -- Journey 3: Data Processing Pipeline
-INSERT INTO journey_definitions (id, name, description, created_at, updated_at) VALUES
+INSERT INTO journey_definitions (id, name, description, created_by, created_at, updated_at) VALUES
 ('550e8400-e29b-41d4-a716-446655440003', 
  'Data Processing Pipeline', 
  'ETL pipeline for processing customer data',
+ '00000000-0000-0000-0000-000000000001', 
  CURRENT_TIMESTAMP, 
  CURRENT_TIMESTAMP);
 
@@ -34,7 +40,7 @@ INSERT INTO journey_definitions (id, name, description, created_at, updated_at) 
 -- ============================================
 
 -- HTTP API Journey - Version 1.0.0
-INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, created_by, created_at) VALUES
+INSERT INTO journey_versions (id, journey_definition_id, version_number, dsl, status, created_by, created_at) VALUES
 (gen_random_uuid(),
  '550e8400-e29b-41d4-a716-446655440001',
  '1.0.0',
@@ -71,11 +77,11 @@ INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, c
    ]
  }'::jsonb,
  'PUBLISHED',
- 'system-admin',
+ '00000000-0000-0000-0000-000000000001',
  CURRENT_TIMESTAMP);
 
 -- Email Journey - Version 1.0.0
-INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, created_by, created_at) VALUES
+INSERT INTO journey_versions (id, journey_definition_id, version_number, dsl, status, created_by, created_at) VALUES
 (gen_random_uuid(),
  '550e8400-e29b-41d4-a716-446655440002',
  '1.0.0',
@@ -111,11 +117,11 @@ INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, c
    ]
  }'::jsonb,
  'PUBLISHED',
- 'system-admin',
+ '00000000-0000-0000-0000-000000000001',
  CURRENT_TIMESTAMP);
 
 -- Data Pipeline - Version 1.0.0
-INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, created_by, created_at) VALUES
+INSERT INTO journey_versions (id, journey_definition_id, version_number, dsl, status, created_by, created_at) VALUES
 (gen_random_uuid(),
  '550e8400-e29b-41d4-a716-446655440003',
  '1.0.0',
@@ -158,7 +164,7 @@ INSERT INTO journey_versions (id, journey_id, version, dsl_definition, status, c
    ]
  }'::jsonb,
  'PUBLISHED',
- 'system-admin',
+ '00000000-0000-0000-0000-000000000001',
  CURRENT_TIMESTAMP);
 
 -- ============================================

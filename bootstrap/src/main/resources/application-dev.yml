@@ -4,16 +4,29 @@ spring:
     url: jdbc:postgresql://localhost:5432/sparkle_db
     username: sparkle_user
     password: sparkle_password
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 5
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-test-query: SELECT 1
 
   jpa:
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    connect-retries: 10
+    connect-retries-interval: 2s
 
 aws:
   sqs:
-    endpoint: http://localhost:4566  # LocalStack endpoint
+    endpoint: ${SQS_ENDPOINT:http://localhost:4566}  # LocalStack endpoint
 
 logging:
   level:
@@ -24,4 +37,4 @@ logging:
 otel:
   exporter:
     otlp:
-      endpoint: http://localhost:4317
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}

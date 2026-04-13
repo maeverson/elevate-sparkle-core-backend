@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
+FROM docker.io/library/maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ COPY bootstrap/src bootstrap/src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+FROM docker.io/library/eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
@@ -46,7 +46,7 @@ RUN chown -R sparkle:sparkle /app
 USER sparkle
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=5 \
     CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
 # Expose port

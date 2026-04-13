@@ -12,24 +12,47 @@ docker-compose --version
 ```
 
 ### 2. Build e Run
+
+#### Opção 1: Script Automatizado (Recomendado) ⭐
 ```bash
-# Clone e entre no diretório
-cd elevate-sparkle-core-backend
+# Iniciar infraestrutura e aplicação
+./start-app.sh
 
-# Build do projeto
-mvn clean install -DskipTests
-
-# Inicie os serviços com Docker
-docker-compose up -d
-
-# Aguarde ~30 segundos para todos os serviços iniciarem
-sleep 30
-
-# Inicialize o LocalStack (SQS)
-./scripts/init-localstack.sh
+# Ou com profile específico
+./start-app.sh prod
 ```
 
-### 3. Teste a API
+#### Opção 2: Manual
+```bash
+# 1. Build do projeto
+mvn clean install -DskipTests
+
+# 2. Inicie a infraestrutura com Docker
+docker-compose up -d
+
+# 3. Aguarde ~30 segundos para todos os serviços iniciarem
+sleep 30
+
+# 4. Inicialize o LocalStack (SQS)
+./scripts/init-localstack.sh
+
+# 5. Execute a aplicação (⚠️ IMPORTANTE: executar no módulo bootstrap!)
+cd bootstrap
+mvn spring-boot:run
+
+# Ou do diretório root:
+mvn spring-boot:run -pl bootstrap
+```
+
+### 3. Verificar se está funcionando
+```bash
+# Health check
+curl http://localhost:8080/actuator/health
+
+# Deve retornar: {"status":"UP"}
+```
+
+### 4. Teste a API
 
 #### Registrar um usuário
 ```bash

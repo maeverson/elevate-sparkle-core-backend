@@ -169,6 +169,81 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 
 All endpoints (except auth) require `Authorization: Bearer <JWT>` header.
 
+## 🗄️ Database Migrations
+
+### Flyway Migrations
+
+O projeto usa **Flyway** para versionamento do banco de dados. As migrations estão localizadas em:
+```
+adapter-out-persistence/src/main/resources/db/migration/
+```
+
+### Migrations Disponíveis
+
+| Versão | Arquivo | Descrição |
+|--------|---------|-----------|
+| V1 | `V1__create_users_table.sql` | Tabelas de usuários e roles |
+| V2 | `V2__create_orders_table.sql` | Tabelas de pedidos e itens |
+| V3 | `V3__create_event_store.sql` | Event Store para Event Sourcing |
+| V4 | `V4__create_journey_tables.sql` | Jornadas e versionamento |
+| V5 | `V5__create_execution_projections.sql` | Projeções CQRS para dashboard |
+| V6 | `V6__seed_system_user.sql` | Usuário sistema inicial |
+| V7 | `V7__seed_test_data.sql` | Dados de teste (dev only) |
+
+### Aplicar Migrations
+
+```bash
+# Via Maven
+mvn flyway:migrate
+
+# Via Spring Boot (automático no startup)
+# Configurado em application.yml:
+#   spring.flyway.enabled: true
+```
+
+### Comandos Úteis
+
+```bash
+# Verificar status das migrations
+mvn flyway:info
+
+# Validar migrations
+mvn flyway:validate
+
+# Limpar banco (⚠️ CUIDADO - apenas dev!)
+mvn flyway:clean
+
+# Validar scripts SQL
+./scripts/validate-migrations.sh
+```
+
+### Usuário Padrão (Development)
+
+**Username:** `system`  
+**Password:** `admin123`  
+**Email:** `system@sparkle.local`  
+**Roles:** ADMIN, USER
+
+**⚠️ IMPORTANTE:** Alterar senha em produção!
+
+### Schema do Banco de Dados
+
+```sql
+-- Autenticação
+users, user_roles
+
+-- Domínio de Negócio
+orders, order_items
+
+-- Journey Orchestration
+journey_definitions, journey_versions, execution_summary
+
+-- Event Sourcing
+event_store, event_snapshot
+```
+
+Para mais detalhes, consulte: `adapter-out-persistence/src/main/resources/db/migration/README.md`
+
 ## 🌍 Environment Configuration
 
 ### Development (application-dev.yml)

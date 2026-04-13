@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -32,7 +31,6 @@ public class ExecutionProjectionUpdater {
      * Handles journey start by creating initial execution_summary record.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void onJourneyStarted(JourneyStartedEvent event) {
         try {
             logger.debug("Creating execution summary for execution: {}", event.aggregateId());
@@ -69,7 +67,6 @@ public class ExecutionProjectionUpdater {
      * Handles journey completion by updating status and completion info.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void onJourneyCompleted(JourneyCompletedEvent event) {
         try {
             logger.debug("Updating execution summary to COMPLETED for execution: {}", event.aggregateId());
@@ -104,7 +101,6 @@ public class ExecutionProjectionUpdater {
      * Handles journey failure by updating status.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void onJourneyFailed(JourneyFailedEvent event) {
         try {
             logger.debug("Updating execution summary to FAILED for execution: {}", event.aggregateId());
@@ -139,7 +135,6 @@ public class ExecutionProjectionUpdater {
      * Handles step completion by incrementing completed_steps counter.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void onStepCompleted(StepCompletedEvent event) {
         try {
             logger.debug("Incrementing completed_steps for execution: {}", event.aggregateId());
@@ -162,7 +157,6 @@ public class ExecutionProjectionUpdater {
      * Handles step failure by incrementing failed_steps counter.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
     public void onStepFailed(StepFailedEvent event) {
         try {
             logger.debug("Incrementing failed_steps for execution: {}", event.aggregateId());

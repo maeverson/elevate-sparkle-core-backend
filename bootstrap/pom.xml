@@ -56,6 +56,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Logback Logstash Encoder -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,6 +75,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.elevate.sparkle.SparkleBackendApplication</mainClass>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

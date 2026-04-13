@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * Mapper for converting between JourneyDSL domain object and DTOs
  */
 @Component
-public class JourneyDSLMapper {
+public class JourneyDtoMapper {
     
     /**
      * Convert DTO to domain object
