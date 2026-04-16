@@ -45,6 +45,9 @@ public class JwtTokenProvider implements TokenProviderPort {
         claims.put("roles", user.getRoles().stream()
                 .map(UserRole::name)
                 .collect(Collectors.toList()));
+        if (user.getTenantId() != null) {
+            claims.put("tenantId", user.getTenantId());
+        }
 
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
@@ -89,5 +92,24 @@ public class JwtTokenProvider implements TokenProviderPort {
                 .parseSignedClaims(token)
                 .getPayload();
         return claims.get("userId", String.class);
+    }
+
+    public String getTenantIdFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("tenantId", String.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getRolesFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("roles", java.util.List.class);
     }
 }

@@ -4,6 +4,7 @@ import com.elevate.sparkle.domain.model.User;
 import com.elevate.sparkle.domain.valueobject.Email;
 import com.elevate.sparkle.domain.valueobject.UserId;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,6 +54,19 @@ public interface UserRepositoryPort {
      * @return true if exists
      */
     boolean existsByEmail(Email email);
+
+    /**
+     * Find all users
+     * @return list of all users
+     */
+    List<User> findAll();
+
+    /**
+     * Find all users by tenant ID
+     * @param tenantId the tenant ID
+     * @return list of users for the tenant
+     */
+    List<User> findAllByTenantId(String tenantId);
 
     /**
      * Delete a user

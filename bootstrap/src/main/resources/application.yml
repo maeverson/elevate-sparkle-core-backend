@@ -6,9 +6,9 @@ spring:
     active: ${SPRING_PROFILE:dev}
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sparkle_db}
-    username: ${DB_USERNAME:sparkle_user}
-    password: ${DB_PASSWORD:sparkle_password}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sparkledb}
+    username: ${DB_USERNAME:sparkle}
+    password: ${DB_PASSWORD:sparkle123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10

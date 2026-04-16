@@ -28,11 +28,13 @@ public class User {
     private String lastName;
     private Set<UserRole> roles;
     private boolean active;
+    private String tenantId;
     private Instant createdAt;
     private Instant updatedAt;
 
     public static User createNew(String username, Email email, String passwordHash, 
-                                  String firstName, String lastName, Set<UserRole> roles) {
+                                  String firstName, String lastName, Set<UserRole> roles,
+                                  String tenantId) {
         validateInputs(username, email, passwordHash, firstName, lastName, roles);
 
         return User.builder()
@@ -44,9 +46,15 @@ public class User {
                 .lastName(lastName)
                 .roles(roles)
                 .active(true)
+                .tenantId(tenantId)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
+    }
+
+    public static User createNew(String username, Email email, String passwordHash,
+                                  String firstName, String lastName, Set<UserRole> roles) {
+        return createNew(username, email, passwordHash, firstName, lastName, roles, null);
     }
 
     public void deactivate() {
@@ -56,6 +64,22 @@ public class User {
 
     public void activate() {
         this.active = true;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateProfile(String firstName, String lastName, Email email, Set<UserRole> roles) {
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            this.firstName = firstName;
+        }
+        if (lastName != null && !lastName.trim().isEmpty()) {
+            this.lastName = lastName;
+        }
+        if (email != null) {
+            this.email = email;
+        }
+        if (roles != null && !roles.isEmpty()) {
+            this.roles = roles;
+        }
         this.updatedAt = Instant.now();
     }
 

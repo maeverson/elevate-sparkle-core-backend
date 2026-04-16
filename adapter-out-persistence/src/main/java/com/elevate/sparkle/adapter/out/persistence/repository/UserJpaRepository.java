@@ -4,6 +4,7 @@ import com.elevate.sparkle.adapter.out.persistence.entity.UserJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -19,4 +20,6 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, String> 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    List<UserJpaEntity> findAllByTenantId(String tenantId);
 }

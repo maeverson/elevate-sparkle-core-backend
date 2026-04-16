@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Adapter implementing UserRepositoryPort
@@ -68,6 +70,24 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Transactional(readOnly = true)
     public boolean existsByEmail(Email email) {
         return userJpaRepository.existsByEmail(email.getValue());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        log.debug("Finding all users");
+        return userJpaRepository.findAll().stream()
+                .map(mapper::toDomainEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findAllByTenantId(String tenantId) {
+        log.debug("Finding users by tenant: {}", tenantId);
+        return userJpaRepository.findAllByTenantId(tenantId).stream()
+                .map(mapper::toDomainEntity)
+                .collect(Collectors.toList());
     }
 
     @Override

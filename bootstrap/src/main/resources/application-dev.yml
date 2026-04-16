@@ -1,9 +1,9 @@
 # Development Profile Configuration
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/sparkle_db
-    username: sparkle_user
-    password: sparkle_password
+    url: jdbc:postgresql://localhost:5432/sparkledb
+    username: sparkle
+    password: sparkle123
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 5

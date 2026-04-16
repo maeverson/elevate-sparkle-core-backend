@@ -27,6 +27,7 @@ public class UserPersistenceMapper {
                 .lastName(user.getLastName())
                 .roles(toStringRoles(user.getRoles()))
                 .active(user.isActive())
+                .tenantId(user.getTenantId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
@@ -42,6 +43,7 @@ public class UserPersistenceMapper {
                 .lastName(jpaEntity.getLastName())
                 .roles(toUserRoles(jpaEntity.getRoles()))
                 .active(jpaEntity.isActive())
+                .tenantId(jpaEntity.getTenantId())
                 .createdAt(jpaEntity.getCreatedAt())
                 .updatedAt(jpaEntity.getUpdatedAt())
                 .build();

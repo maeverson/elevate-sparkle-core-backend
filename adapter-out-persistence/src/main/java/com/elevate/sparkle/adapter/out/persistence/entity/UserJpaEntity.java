@@ -51,6 +51,9 @@ public class UserJpaEntity {
     @Column(name = "active", nullable = false)
     private boolean active;
 
+    @Column(name = "tenant_id")
+    private String tenantId;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

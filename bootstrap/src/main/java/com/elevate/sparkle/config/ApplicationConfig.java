@@ -65,6 +65,21 @@ public class ApplicationConfig {
             TokenProviderPort tokenProvider) {
         return new AuthenticateUserService(userRepository, passwordEncoder, tokenProvider);
     }
+
+    @Bean
+    public AdminUserService adminUserService(
+            UserRepositoryPort userRepository,
+            PasswordEncoderPort passwordEncoder) {
+        return new AdminUserService(userRepository, passwordEncoder);
+    }
+
+    // Connector Use Cases
+
+    @Bean
+    public ConnectorService connectorService(
+            ConnectorRepositoryPort connectorRepository) {
+        return new ConnectorService(connectorRepository);
+    }
     
     // Journey Use Cases
     

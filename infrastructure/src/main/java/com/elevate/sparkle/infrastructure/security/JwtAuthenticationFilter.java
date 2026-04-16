@@ -1,5 +1,6 @@
 package com.elevate.sparkle.infrastructure.security;
 
+import com.elevate.sparkle.application.context.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,24 +40,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromToken(jwt);
 
-                // In a real scenario, you'd fetch roles from the token or database
-                // For simplicity, creating a basic authentication
-                List<SimpleGrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_USER")
-                );
+                // Extract roles from JWT token
+                List<String> roles = tokenProvider.getRolesFromToken(jwt);
+                List<SimpleGrantedAuthority> authorities = roles != null
+                        ? roles.stream()
+                            .map(role -> new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role))
+                            .collect(Collectors.toList())
+                        : List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Set authentication for user: {}", username);
+
+                // Extract and set tenant context from JWT
+                String tenantId = tokenProvider.getTenantIdFromToken(jwt);
+                if (tenantId != null) {
+                    TenantContext.setCurrentTenantId(tenantId);
+                }
+
+                log.debug("Set authentication for user: {} with tenant: {}", username, tenantId);
             }
         } catch (Exception e) {
             log.error("Could not set user authentication in security context", e);
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {
